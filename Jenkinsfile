@@ -19,7 +19,7 @@ pipeline {
         }
 
         stage('SonarQube Analysis'){
-            when { expression { env.GIT_BRANCH == 'origin/main' } } // test
+            when { expression { env.GIT_BRANCH == 'origin/main' } } 
             agent {label 'deployment'}
             steps {
                 checkout scm
@@ -52,7 +52,7 @@ pipeline {
 
                 """
 
-                archiveArtifacts artifacts: 'build-info.txt', fingerprint: false
+                archiveArtifacts artifacts: 'build-info.txt', fingerprint: true
 
                 echo "Deployed from ${env.GIT_BRANCH} on ${NODE_NAME}"
             }
