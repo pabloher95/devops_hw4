@@ -18,6 +18,24 @@ pipeline {
             }
         }
 
+        stage('SonarQube Analysis'){
+            when { expression { env.GIT_BRANCH == 'origin/main' } }
+            agent {label 'deployment'}
+            steps {
+                checkout scm
+                withSonarQubeEnv('SonarQube') {
+                    sh """
+                        sonar-scanner \
+                        -Dsonar.projectKey=devops-hw4 \
+                        -Dsonar.sources=.
+                    """
+                }
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
         stage('Deploy'){
             when { expression { env.GIT_BRANCH == 'origin/main' } }
             agent {label 'deployment'}
