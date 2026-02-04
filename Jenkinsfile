@@ -20,7 +20,7 @@ pipeline {
             agent {label 'deployment'}
             steps {
                 checkout scm
-                echo "Checked out repo on ${NODE_NAME}"
+                echo "Checked out repo from ${env.GIT_BRANCH} on ${NODE_NAME}"
                 echo "Deployed from ${env.GIT_BRANCH} on ${NODE_NAME}"
             }
         }
