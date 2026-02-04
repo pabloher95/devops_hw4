@@ -1,6 +1,4 @@
-#from app import app
 import pytest
-#from unittest.mock import patch
 
 def add(x,y):
     return x + y
@@ -16,12 +14,6 @@ def subtract(x, y):
 
 def multiply(x, y):
     return x * y
-
-# @pytest.fixture
-# def app_tester():
-#     app.config["TESTING"] = True
-#     with app.test_client() as client:
-#         yield client
 
 def test_add():
     assert add(2, 3) == 5
