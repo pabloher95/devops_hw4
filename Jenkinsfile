@@ -9,6 +9,7 @@ pipeline {
 
     stages {
         stage('build') {
+            agent {label 'testing'}
             steps {
                 sh 'pip install -r requirements.txt'
             }
