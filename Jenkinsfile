@@ -8,7 +8,7 @@ pipeline {
         stage('Debug') {
             agent any
             steps {
-                echo "running on branch ${env.BRANCH_NAME}" // test
+                echo "running on branch ${scm.branches[0].name}" // test
                 echo "running on node ${NODE_NAME}"
             }
         }
