@@ -14,7 +14,7 @@ pipeline {
 
         stage('Test'){ 
             when {not {branch 'main'}}
-            agent {label 'test'}
+            agent {label 'testing'}
             steps {
                 echo 'Running tests'
             }
