@@ -5,11 +5,10 @@ pipeline {
     }
 
     stages {
-        stage('Debug') {
-            agent any
+        stage('Verify agent setup') {
+            agent {label 'deployment || testing'}
             steps {
-                echo "running on branch ${scm.branches[0].name}" // test
-                echo "running on git ${env.GIT_BRANCH}" // test
+                echo "running on branch ${env.GIT_BRANCH}" // test
                 echo "running on node ${NODE_NAME}"
             }
         }
@@ -23,7 +22,7 @@ pipeline {
         }
 
         stage('Test'){ 
-            when {not {branch 'main'}}
+            when { not {expression { env.GIT_BRANCH == 'origin/main' } }}
             agent {label 'testing'}
             steps {
                 echo "Running tests on ${NODE_NAME}"
@@ -31,10 +30,10 @@ pipeline {
         }
 
         stage('Deploy'){
-            when {branch 'main'}
+            when { expression { env.GIT_BRANCH == 'origin/main' } }
             agent {label 'deployment'}
             steps {
-                echo "Deployed from main on ${NODE_NAME}"
+                echo "Deployed from ${env.GIT_BRANCH} on ${NODE_NAME}"
             }
         }
     }
