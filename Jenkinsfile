@@ -5,24 +5,23 @@ pipeline {
     }
 
     stages {
-        stage('Verify agent setup') {
+        stage('Agent initialize') {
             agent {label 'deployment || testing'}
             steps {
-                echo "running on branch ${env.GIT_BRANCH}" // test
-                echo "running on node ${NODE_NAME}"
+                echo "running pipeline from branch ${env.GIT_BRANCH} on node ${NODE_NAME}"
             }
         }
 
         stage('Checkout') {
-            agent {label 'deployment'}
+            agent {label 'deployment || testing'}
             steps {
                 checkout scm
-                echo "Checked out on ${NODE_NAME}"
+                echo "Checked out repo on ${NODE_NAME}"
             }
         }
 
         stage('Test'){ 
-            when { not {expression { env.GIT_BRANCH == 'origin/main' } }}
+            when { expression { env.GIT_BRANCH == 'origin/testing' } }
             agent {label 'testing'}
             steps {
                 echo "Running tests on ${NODE_NAME}"
