@@ -9,6 +9,7 @@ pipeline {
             agent any
             steps {
                 echo "running on branch ${scm.branches[0].name}" // test
+                echo "running on git ${env.GIT_BRANCH}" // test
                 echo "running on node ${NODE_NAME}"
             }
         }
