@@ -8,8 +8,13 @@ pipeline {
     }
 
     stages {
+        stage('build') {
+            steps {
+                sh 'pip install -r requirements.txt'
+            }
+            }
         stage('Test'){ 
-            when { expression { env.GIT_BRANCH != 'origin/main' } }
+            // when { expression { env.GIT_BRANCH != 'origin/main' } }
             agent {label 'testing'}
             steps {
                 checkout scm
@@ -23,11 +28,19 @@ pipeline {
             agent {label 'deployment'}
             steps {
                 checkout scm
+
+                sh """
+                    pip install -r requirements.txt
+                    pytest test_app.py --cov=. --cov-fail-under=80 --cov-report=xml:coverage.xml || true
+                """
+
+
                 withSonarQubeEnv('SonarQube') {
                     sh """
                         sonar-scanner \
                         -Dsonar.projectKey=devops-hw4 \
-                        -Dsonar.sources=.
+                        -Dsonar.sources=. \
+                        -Dsonar.python.coverage.reportPaths=coverage.xml
                     """
                 }
                 timeout(time: 5, unit: 'MINUTES') {
