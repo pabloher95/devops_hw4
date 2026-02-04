@@ -6,9 +6,10 @@ pipeline {
 
     stages {
         stage('Checkout') {
-            agent any 
+            agent {label 'deployment'}
             steps {
                 checkout scm
+                echo 'Checked out on ${NODE_NAME}'
             }
         }
 
@@ -16,7 +17,7 @@ pipeline {
             when {not {branch 'main'}}
             agent {label 'testing'}
             steps {
-                echo 'Running tests'
+                echo 'Running tests on ${NODE_NAME}'
             }
         }
 
@@ -24,7 +25,7 @@ pipeline {
             when {branch 'main'}
             agent {label 'deployment'}
             steps {
-                echo 'Deployed from main'
+                echo 'Deployed from main on ${NODE_NAME}'
             }
         }
     }
