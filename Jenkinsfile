@@ -34,7 +34,7 @@ pipeline {
 
                 """
 
-                archiveArtifacts artifacts: 'build-info.txt', fingerprint = false
+                archiveArtifacts artifacts: 'build-info.txt', fingerprint: false
 
                 echo "Deployed from ${env.GIT_BRANCH} on ${NODE_NAME}"
             }
