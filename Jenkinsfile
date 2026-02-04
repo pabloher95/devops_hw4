@@ -19,7 +19,7 @@ pipeline {
         }
 
         stage('SonarQube Analysis'){
-            when { expression { env.GIT_BRANCH == 'origin/main' } }
+            when { expression { env.GIT_BRANCH == 'origin/main' } } // test
             agent {label 'deployment'}
             steps {
                 checkout scm
@@ -45,9 +45,9 @@ pipeline {
 
                 sh""" 
                     echo "Version: ${VERSION}" > build-info.txt
-                    echo "Build Number:${BUILD_NUMBER}" >> build-info.txt
+                    echo "Build Number: ${BUILD_NUMBER}" >> build-info.txt
                     echo "Build Date: \$(date)" >> build-info.txt
-                    echo "Dependencies" >> build-info.txt
+                    echo "Dependencies:" >> build-info.txt
                     cat requirements.txt >> build-info.txt 
 
                 """
