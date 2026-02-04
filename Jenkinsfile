@@ -5,8 +5,6 @@ pipeline {
     }
 
     stages {
-
-        stages {
         stage('Debug') {
             agent any
             steps {
