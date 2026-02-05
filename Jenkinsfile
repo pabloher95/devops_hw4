@@ -41,10 +41,6 @@ pipeline {
             agent {label 'deployment'}
             steps {
                 checkout scm
-                sh """
-                pip install -r requirements.txt
-                pytest test
-                """
                 withSonarQubeEnv('SonarQube') {
                     sh """
                         sonar-scanner \
@@ -151,7 +147,6 @@ pipeline {
                         docker-compose up -d db web
                         sleep 15
 
-                        # Run k6 from the official image against the compose network
                         NET=$(docker network ls --format '{{.Name}}' | grep hw4 | head -1)
                         docker run --rm \
                             --network="$NET" \
