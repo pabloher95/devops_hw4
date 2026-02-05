@@ -10,6 +10,7 @@ pipeline {
         MYSQL_USER = credentials('MYSQL_USER')
         MYSQL_PASSWORD = credentials('MYSQL_PASSWORD')
         MYSQL_DATABASE = credentials('MYSQL_DATABASE')
+        MYSQL_ROOT_PASSWORD = credentials('MYSQL_ROOT_PASSWORD')
     }
 
     stages {
@@ -65,17 +66,22 @@ pipeline {
                     export MYSQL_USER=${MYSQL_USER}
                     export MYSQL_PASSWORD=${MYSQL_PASSWORD}
                     export MYSQL_DATABASE=${MYSQL_DATABASE}
+                    export MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
 
                     docker-compose up -d db
                     sleep 10
 
                     docker-compose exec -T db mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} < schema.sql
                     docker-compose exec -T db mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} < seed.sql
-                    
-                    # Verify
                     docker-compose exec -T db mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} -e "USE staging_db; SELECT COUNT(*) FROM to_do;"
 
                 """
+                echo "Staging complete"
+            }
+            post {
+                always {
+                    sh 'docker compose down || true'
+                }
             }
         }
 
