@@ -128,7 +128,7 @@ pipeline {
             post {
                 always {
                     sh 'docker-compose down || true'
-                    archiveArtifacts artifacts: 'e2e.xml', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'test-results/e2e.xml', allowEmptyArchive: true
                 }
             }
         }
