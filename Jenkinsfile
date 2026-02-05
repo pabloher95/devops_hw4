@@ -71,8 +71,8 @@ pipeline {
                     docker-compose up -d db
                     sleep 10
 
-                    docker-compose exec -T db mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} < schema.sql
-                    docker-compose exec -T db mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} < seed.sql
+                    docker-compose exec -T db mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} < staging_schema.sql
+                    docker-compose exec -T db mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} < staging_seed.sql
                     docker-compose exec -T db mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} -e "USE staging_db; SELECT COUNT(*) FROM to_do;"
 
                 """
