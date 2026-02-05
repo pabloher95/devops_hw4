@@ -89,7 +89,8 @@ pipeline {
                     docker-compose up -d db web
                     sleep 15
 
-                    docker-compose exec -T web pytest test_e2e.py --headed
+                    docker-compose exec -T web playwright install chromium
+                    docker-compose exec -T web pytest test_e2e.py
                 
                 """ 
 
