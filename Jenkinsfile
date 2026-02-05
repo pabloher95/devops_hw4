@@ -83,7 +83,7 @@ pipeline {
                     export MYSQL_PASSWORD=${MYSQL_PASSWORD}
                     export MYSQL_DATABASE=${MYSQL_DATABASE}
                     export MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-                    export BASE_URL= http://web:8000
+                    export BASE_URL=http://web:8000
 
                     docker-compose up -d db web
                     sleep 10
