@@ -41,6 +41,10 @@ pipeline {
             agent {label 'deployment'}
             steps {
                 checkout scm
+                sh """
+                pip install -r requirements.txt
+                pytest test
+                """
                 withSonarQubeEnv('SonarQube') {
                     sh """
                         sonar-scanner \
@@ -157,13 +161,14 @@ pipeline {
                             --network="$NET" \
                             -v "$PWD":/scripts \
                             -w /scripts \
-                            grafana/k6 run loadtest.js
+                            grafana/k6 run loadtest.js --summary-export=k6-summary.json
                     '''
                 }
             }
             post {
                 always {
                     sh 'docker-compose down || true'
+                    archiveArtifacts artifacts: 'k6-summary.json', allowEmptyArchive: true
                 }
             }
         }
@@ -180,6 +185,14 @@ pipeline {
                     message: "Deployment successful!"
                 )
             }
+        }
+    } post {
+        failure {
+            slackSend(
+                channel: '#devops',
+                color: 'danger',
+                message: "Build failed. Job ${env.JOB_NAME}, Build ${env.BUILD_NUMBER}, Branch: ${env.GIT_BRANCH}"
+            )
         }
     }
 }
