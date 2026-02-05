@@ -22,7 +22,7 @@ pipeline {
 
                 sh """
                     pip install -r requirements.txt
-                    pytest test_app.py --cov=. --cov-fail-under=80 --cov-report=xml:coverage.xml || true
+                    pytest test_app.py --cov=. --cov-fail-under=80 --cov-report=html:pytest_report.html --cov-report=xml:sq_report.xml || true
                 """
 
 
@@ -31,12 +31,17 @@ pipeline {
                         sonar-scanner \
                         -Dsonar.projectKey=devops-hw4 \
                         -Dsonar.sources=. \
-                        -Dsonar.python.coverage.reportPaths=coverage.xml
+                        -Dsonar.python.coverage.reportPaths=sq_report.xml
                     """
                 }
                 timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'pytest_report.html,sq_report.xml', allowEmptyArchive: true
+                }
+            }
             }
         }
 
@@ -93,7 +98,7 @@ pipeline {
                 
                 """ 
 
-                echo "Running tests on ${NODE_NAME} for branch ${env.GIT_BRANCH}"
+                echo "Running E2E tests on ${NODE_NAME} for branch ${env.GIT_BRANCH}"
             }
             post {
                 always {
@@ -110,7 +115,7 @@ pipeline {
                 checkout scm
                 echo "Checked out repo from ${env.GIT_BRANCH} on ${NODE_NAME}"
 
-                sh""" 
+                sh"""
                     echo "Version: ${VERSION}" > build-info.txt
                     echo "Build Number: ${BUILD_NUMBER}" >> build-info.txt
                     echo "Build Date: \$(date)" >> build-info.txt
