@@ -86,10 +86,10 @@ pipeline {
                     export MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
                     export BASE_URL=http://localhost:8000
 
+
+                    docker-compose build --no-cache web
                     docker-compose up -d db web
                     sleep 15
-
-                    docker-compose exec -T web playwright install chromium
                     docker-compose exec -T web pytest test_e2e.py
                 
                 """ 
