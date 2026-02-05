@@ -185,7 +185,6 @@ pipeline {
                     message: "Deployment successful!"
                 )
             }
-        }
     } post {
         failure {
             slackSend(
@@ -195,4 +194,5 @@ pipeline {
             )
         }
     }
+}
 }
