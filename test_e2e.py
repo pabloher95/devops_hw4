@@ -12,7 +12,7 @@ def test_root(page):
 
 def test_view(page):
     response = page.request.get(f'{BASE_URL}/view')
-    data = response.json
+    data = response.json()
     assert response.ok
     assert isinstance(data, list)
 
@@ -33,7 +33,7 @@ def test_update_status(page):
     )
     view = page.request.get(f"{BASE_URL}/view")
     tasks = view.json()
-    task_id = tasks[0]["task_id"]
+    task_id = tasks[-1]["task_id"]
     response = page.request.post(
         f"{BASE_URL}/update_status",
         data=json.dumps({"task_id": task_id, "task_status": "DONE"}),
