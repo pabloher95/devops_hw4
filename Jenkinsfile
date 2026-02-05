@@ -134,36 +134,30 @@ pipeline {
         }
 
 
-       stage('K6 Load') {
-  when { expression { env.GIT_BRANCH == 'origin/main' } }
-  agent { label 'deployment' }
-  steps {
-    sh """
-      set -euxo pipefail
+        stage('K6 Load'){
+            when { expression { env.GIT_BRANCH == 'origin/main' } }
+            agent {label 'deployment'}
+            steps {
+                    sh """
+                        set -euxo pipefail
+                        docker-compose up -d db web
+                        sleep 10
 
-      # bring up the stack
-      docker-compose up -d db web
-      # wait a bit for web to be ready
-      sleep 10
-      docker-compose exec -T web curl -sf http://localhost:8000/ || exit 1
-
-      # find the compose network name (often devops-hw4_default)
-      NET=$(docker network ls --format '{{.Name}}' | grep devops-hw4 | head -1)
-
-      # run k6 from the official image, mounting the workspace
-      docker run --rm \
-        --network="$NET" \
-        -v "$PWD":/scripts \
-        -w /scripts \
-        grafana/k6 run loadtest.js
-    """
-  }
-  post {
-    always {
-      sh 'docker-compose down || true'
-    }
-  }
-}
+                        # run k6 from the official image against the compose network
+                        NET=$(docker network ls --format '{{.Name}}' | grep devops-hw4 | head -1)
+                        docker run --rm \
+                            --network="$NET" \
+                            -v "$PWD":/scripts \
+                            -w /scripts \
+                            grafana/k6 run loadtest.js
+                        """
+            }
+            post {
+                always {
+                sh 'docker-compose down || true'
+                }
+            }
+        }
 
 
         stage('Deploy'){
