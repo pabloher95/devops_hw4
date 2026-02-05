@@ -98,6 +98,7 @@ pipeline {
             post {
                 always {
                     sh 'docker-compose down || true'
+                    archiveArtifacts artifacts: 'e2e_report.html', allowEmptyArchive: true
                 }
             }
         }
@@ -117,7 +118,7 @@ pipeline {
                     cat requirements.txt >> build-info.txt 
                 """
 
-                archiveArtifacts artifacts: 'build-info.txt, e2e_report.html', fingerprint: true
+                archiveArtifacts artifacts: 'build-info.txt', fingerprint: true
 
                 echo "Deployed from ${env.GIT_BRANCH} on ${NODE_NAME}"
             }
