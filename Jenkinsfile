@@ -76,7 +76,7 @@ pipeline {
                     docker-compose up -d db
                     sleep 10
 
-                    "Creating Staging"
+                    echo "Creating Staging"
                     docker-compose exec -T db mysql -uroot -p${MYSQL_ROOT_PASSWORD} < staging_schema.sql
 
                     echo "Seeding Staging"
