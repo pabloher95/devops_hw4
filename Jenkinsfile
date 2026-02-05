@@ -96,7 +96,7 @@ pipeline {
         }
 
         stage('Test'){ 
-            // when { expression { env.GIT_BRANCH != 'origin/main' } }
+            when { expression { env.GIT_BRANCH == 'origin/main' } }
             agent {label 'testing'}
             steps {
                 checkout scm
