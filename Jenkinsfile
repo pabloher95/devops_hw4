@@ -127,6 +127,19 @@ pipeline {
             }
         }
 
+
+        stage('K6 Load'){
+            when { expression { env.GIT_BRANCH == 'origin/main' } }
+            agent {label 'deployment'}
+            steps {
+                sh """
+                    k6 version
+                    k6 run loadtest.js
+                """
+            }
+        }
+
+
         stage('Deploy'){
             when { expression { env.GIT_BRANCH == 'origin/main' } }
             agent {label 'deployment'}

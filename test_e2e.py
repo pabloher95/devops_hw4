@@ -11,19 +11,16 @@ def test_root(page):
     expect(page.locator('body')).to_contain_text('Hello from Task Manager!')
 
 def test_view(page):
+    """Test view endpoint"""
     response = page.request.get(f'{BASE_URL}/view')
     
-    # Debug output
+    print(f"=== VIEW TEST DEBUG ===")
     print(f"Status: {response.status}")
-    print(f"Content-Type: {response.headers.get('content-type')}")
+    print(f"Headers: {response.headers}")
+    print(f"Body: {response.text()}")
+    print("======================")
     
-    # Check if response is actually JSON
-    if response.status != 200:
-        print(f"Error response: {response.text()}")
-    
-    assert response.status == 200, f"Expected 200, got {response.status}: {response.text()}"
-    
-    # Only parse JSON if status is OK
+    assert response.ok, f"View failed: {response.text()}"
     data = response.json()
     assert isinstance(data, list)
 
