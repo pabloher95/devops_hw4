@@ -21,7 +21,8 @@ def create_table():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS to_do (
         task_id INT AUTO_INCREMENT PRIMARY KEY, 
-        task VARCHAR(120) NOT NULL
+        task VARCHAR(120) NOT NULL,
+        task_status VARCHAR(20) DEFAULT 'PENDING'
                    )
     """)    
     conn.commit()
@@ -30,7 +31,7 @@ def create_table():
 
 @app.route('/')
 def hello():
-    return 'Hello from Docker!'
+    return 'Hello from Task Manager!'
 
 @app.route('/add', methods = ['POST'])
 def add():
@@ -69,6 +70,25 @@ def delete():
     conn.close()
 
     return jsonify({'OK': True}), 200
+
+@app.route('/update_status', methods = ['POST'])
+def update_status():
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    data = request.get_json()
+    task_id = data.get('task_id')
+    task_status = data.get('task_status')
+
+    cursor.execute("""
+    UPDATE to_do SET task_status = %s WHERE task_id = %s    
+    """, (task_status, task_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({'OK': True}), 200
     
 
 @app.route('/view', methods = ['GET'])
@@ -82,7 +102,7 @@ def view():
     """)
 
     rows = cursor.fetchall()
-    records = [{"task_id": r[0], "task": r[1]} for r in rows]
+    records = [{"task_id": r[0], "task": r[1], "task_status": r[2]} for r in rows]
 
     cursor.close()
     conn.close()

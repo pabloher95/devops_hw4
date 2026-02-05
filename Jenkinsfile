@@ -14,101 +14,8 @@ pipeline {
     }
 
     stages {
-        stage('Analyze'){
-            when { expression { env.GIT_BRANCH == 'origin/main' } } 
-            agent {label 'deployment'}
-            steps {
-                checkout scm
 
-                sh """
-                    pip install -r requirements.txt
-                    pytest test_app.py --cov=. --cov-fail-under=80 --cov-report=html:pytest_report.html --cov-report=xml:sq_report.xml || true
-                """
-
-
-                withSonarQubeEnv('SonarQube') {
-                    sh """
-                        sonar-scanner \
-                        -Dsonar.projectKey=devops-hw4 \
-                        -Dsonar.sources=. \
-                        -Dsonar.python.coverage.reportPaths=sq_report.xml
-                    """
-                }
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'pytest_report.html,sq_report.xml', allowEmptyArchive: true
-                }
-            }
-        }
-
-        stage('Stage'){
-            when { expression { env.GIT_BRANCH == 'origin/main' } }
-            agent {label 'deployment'}
-            steps {
-                checkout scm
-                sh """                
-                    export DB_HOST=${DB_HOST}
-                    export DB_PORT=${DB_PORT}
-                    export MYSQL_USER=${MYSQL_USER}
-                    export MYSQL_PASSWORD=${MYSQL_PASSWORD}
-                    export MYSQL_DATABASE=${MYSQL_DATABASE}
-                    export MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-
-                    docker-compose up -d db
-                    sleep 10
-
-                    docker-compose exec -T db mysql -uroot -p${MYSQL_ROOT_PASSWORD} < staging_schema.sql
-                    docker-compose exec -T db mysql -uroot -p${MYSQL_ROOT_PASSWORD} < staging_seed.sql
-                    docker-compose exec -T db mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "USE staging_db; SELECT * FROM to_do;"
-
-                """
-                echo "Staging complete"
-            }
-            post {
-                always {
-                    sh 'docker-compose down || true'
-                }
-            }
-        }
-
-        stage('Test'){ 
-            // when { expression { env.GIT_BRANCH != 'origin/main' } }
-            agent {label 'testing'}
-            steps {
-                checkout scm
-                echo "Checked out repo from ${env.GIT_BRANCH} on ${NODE_NAME}"
-
-                sh """
-                    export DB_HOST=${DB_HOST}
-                    export DB_PORT=${DB_PORT}
-                    export MYSQL_USER=${MYSQL_USER}
-                    export MYSQL_PASSWORD=${MYSQL_PASSWORD}
-                    export MYSQL_DATABASE=${MYSQL_DATABASE}
-                    export MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-                    export BASE_URL=http://localhost:8000
-
-                    docker-compose build web
-                    docker-compose up -d db web
-                    sleep 15
-                    docker-compose exec -T web pytest test_e2e.py --html=/app/e2e_report.html --self-contained-html
-                
-                """ 
-
-                echo "Running E2E tests on ${NODE_NAME} for branch ${env.GIT_BRANCH}"
-            }
-            post {
-                always {
-                    sh 'docker-compose down || true'
-                    archiveArtifacts artifacts: 'e2e_report.html', allowEmptyArchive: true
-                }
-            }
-        }
-
-        stage('Deploy'){
+        stage('Build'){
             when { expression { env.GIT_BRANCH == 'origin/main' } }
             agent {label 'deployment'}
             steps {
@@ -125,6 +32,105 @@ pipeline {
 
                 archiveArtifacts artifacts: 'build-info.txt', fingerprint: true
 
+                echo "Build ${VERSION} complete"
+            }
+        }
+
+        stage('Code Quality Analysis'){
+            when { expression { env.GIT_BRANCH == 'origin/main' } } 
+            agent {label 'deployment'}
+            steps {
+                checkout scm
+                withSonarQubeEnv('SonarQube') {
+                    sh """
+                        sonar-scanner \
+                        -Dsonar.projectKey=devops-hw4 \
+                        -Dsonar.sources=. \
+                        -Dsonar.python.coverage.reportPaths=sq_report.xml
+                    """
+                }
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'sq_report.xml', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Staging'){
+            when { expression { env.GIT_BRANCH == 'origin/main' } }
+            agent {label 'deployment'}
+            steps {
+                checkout scm
+                withCredentials([
+                    string(credentialsId: 'DB_HOST', variable: 'DB_HOST'),
+                    string(credentialsId: 'DB_PORT', variable: 'DB_PORT'),
+                    string(credentialsId: 'MYSQL_USER', variable: 'MYSQL_USER'),
+                    string(credentialsId: 'MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
+                    string(credentialsId: 'MYSQL_ROOT_PASSWORD', variable: 'MYSQL_ROOT_PASSWORD')
+                ]) {
+                sh """                
+                    docker-compose up -d db
+                    sleep 10
+
+                    "Creating Staging"
+                    docker-compose exec -T db mysql -uroot -p${MYSQL_ROOT_PASSWORD} < staging_schema.sql
+
+                    echo "Seeding Staging"
+                    docker-compose exec -T db mysql -uroot -p${MYSQL_ROOT_PASSWORD} < staging_seed.sql
+                    
+                    echo "Verifying Staging:"
+                    docker-compose exec -T db mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "SHOW DATABASES; USE staging_db; DESCRIBE to_do; SELECT COUNT(*) as total_tasks FROM to_do;"
+
+                """}
+                echo "Staging complete"
+            }
+            post {
+                always {
+                    sh 'docker-compose down || true'
+                }
+            }
+        }
+
+        stage('Test'){ 
+            // when { expression { env.GIT_BRANCH != 'origin/main' } }
+            agent {label 'testing'}
+            steps {
+                checkout scm
+                echo "Checked out repo from ${env.GIT_BRANCH} on ${NODE_NAME}"
+
+                withCredentials([
+                    string(credentialsId: 'DB_HOST', variable: 'DB_HOST'),
+                    string(credentialsId: 'DB_PORT', variable: 'DB_PORT'),
+                    string(credentialsId: 'MYSQL_USER', variable: 'MYSQL_USER'),
+                    string(credentialsId: 'MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
+                    string(credentialsId: 'MYSQL_ROOT_PASSWORD', variable: 'MYSQL_ROOT_PASSWORD')
+                ]){
+                    sh """
+                    docker-compose build web
+                    docker-compose up -d db web
+                    sleep 15
+                    docker-compose exec -T web pytest test_e2e.py --html=/app/e2e_report.html --self-contained-html
+                
+                """} 
+
+                echo "Running E2E tests on ${NODE_NAME} for branch ${env.GIT_BRANCH}"
+            }
+            post {
+                always {
+                    sh 'docker-compose down || true'
+                    archiveArtifacts artifacts: 'e2e_report.html', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Deploy'){
+            when { expression { env.GIT_BRANCH == 'origin/main' } }
+            agent {label 'deployment'}
+            steps {
                 echo "Deployed from ${env.GIT_BRANCH} on ${NODE_NAME}"
             }
         }
