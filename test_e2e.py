@@ -14,7 +14,7 @@ def test_view(page):
     """Test view endpoint"""
     response = page.request.get(f'{BASE_URL}/view')
     
-    print(f"=== VIEW TEST DEBUG ===")
+    print("=== VIEW TEST DEBUG ===")
     print(f"Status: {response.status}")
     print(f"Headers: {response.headers}")
     print(f"Body: {response.text()}")
