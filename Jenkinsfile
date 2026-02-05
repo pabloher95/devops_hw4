@@ -44,6 +44,7 @@ pipeline {
             when { expression { env.GIT_BRANCH == 'origin/main' } }
             agent {label 'deployment'}
             steps {
+                checkout scm
                 sh """                
                     export DB_HOST=${DB_HOST}
                     export DB_PORT=${DB_PORT}
@@ -64,7 +65,7 @@ pipeline {
             }
             post {
                 always {
-                    sh 'docker compose down || true'
+                    sh 'docker-compose down || true'
                 }
             }
         }
@@ -83,19 +84,21 @@ pipeline {
                     export MYSQL_PASSWORD=${MYSQL_PASSWORD}
                     export MYSQL_DATABASE=${MYSQL_DATABASE}
                     export MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-                    export BASE_URL=http://web:8000
+                    export BASE_URL=http://localhost:8000
 
                     docker-compose up -d db web
-                    sleep 10
+                    sleep 15
 
-
-                    pip install -r requirements.txt
-                    playwright install --with-deps
-                    pytest -q test_e2e.py
+                    docker-compose exec -T web pytest -q test_e2e.py
                 
                 """ 
 
                 echo "Running tests on ${NODE_NAME} for branch ${env.GIT_BRANCH}"
+            }
+            post {
+                always {
+                    sh 'docker-compose down || true'
+                }
             }
         }
 
