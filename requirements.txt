@@ -4,3 +4,4 @@ cryptography
 pytest-cov
 playwright
 pytest-playwright
+pytest-html
