@@ -37,11 +37,11 @@ pipeline {
                 timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
+            }
             post {
                 always {
                     archiveArtifacts artifacts: 'pytest_report.html,sq_report.xml', allowEmptyArchive: true
                 }
-            }
             }
         }
 
