@@ -1,6 +1,6 @@
 USE staging_db;
 
-INSERT INTO to_todo (task) VALUES
+INSERT INTO to_do (task) VALUES
     ('Call parents'), 
     ('Plan spring break trip'), 
     ('Apply to jobs')
