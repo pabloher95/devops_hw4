@@ -11,17 +11,9 @@ def test_root(page):
     expect(page.locator('body')).to_contain_text('Hello from Task Manager!')
 
 def test_view(page):
-    """Test view endpoint"""
     response = page.request.get(f'{BASE_URL}/view')
-    
-    print("=== VIEW TEST DEBUG ===")
-    print(f"Status: {response.status}")
-    print(f"Headers: {response.headers}")
-    print(f"Body: {response.text()}")
-    print("======================")
-    
-    assert response.ok, f"View failed: {response.text()}"
     data = response.json()
+    assert response.ok
     assert isinstance(data, list)
 
 def test_add(page):
