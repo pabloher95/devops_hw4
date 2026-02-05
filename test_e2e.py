@@ -1,7 +1,7 @@
 import os
 from playwright.sync_api import expect
 
-BASE_URL = os.getenv("BASE_URL", "http://web:8000")
+BASE_URL = os.getenv('BASE_URL', 'http://localhost:8000')
 
 def test_homepage(page):
     response = page.goto(BASE_URL)
