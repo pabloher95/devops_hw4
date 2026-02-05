@@ -15,7 +15,7 @@ app.config["MYSQL_DATABASE_DB"] = os.getenv('MYSQL_DATABASE')
 mysql.init_app(app)
 
 def create_table():
-    conn = mysql.connect()
+    conn = mysql.connect() #
     cursor = conn.cursor()
 
     cursor.execute("""
