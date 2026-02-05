@@ -12,8 +12,19 @@ def test_root(page):
 
 def test_view(page):
     response = page.request.get(f'{BASE_URL}/view')
+    
+    # Debug output
+    print(f"Status: {response.status}")
+    print(f"Content-Type: {response.headers.get('content-type')}")
+    
+    # Check if response is actually JSON
+    if response.status != 200:
+        print(f"Error response: {response.text()}")
+    
+    assert response.status == 200, f"Expected 200, got {response.status}: {response.text()}"
+    
+    # Only parse JSON if status is OK
     data = response.json()
-    assert response.ok
     assert isinstance(data, list)
 
 def test_add(page):
