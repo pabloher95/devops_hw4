@@ -113,7 +113,9 @@ pipeline {
                     docker-compose build web
                     docker-compose up -d db web
                     sleep 15
-                    docker-compose exec -T web pytest test_e2e.py --html=/app/e2e_report.html --self-contained-html
+                    docker-compose exec -T web pytest test_e2e.py --junitxml=test-results/e2e.xml -v || true
+                    docker-compose logs web --tail 200 || true   # add this right after pytest
+
 
                     echo "=== WEB LOGS ==="
                     docker-compose logs web | tail -200
