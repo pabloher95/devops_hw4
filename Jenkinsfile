@@ -119,13 +119,9 @@ pipeline {
                     docker-compose up -d db web
                     sleep 15
                     docker-compose exec -T web pytest test_e2e.py --junitxml=test-results/e2e.xml -v || true
-                    docker-compose logs web --tail 200 || true   # add this right after pytest
-
-
-                    echo "=== WEB LOGS ==="
-                    docker-compose logs web | tail -200
                 
-                """} 
+                """
+                } 
 
                 echo "Running E2E tests on ${NODE_NAME} for branch ${env.GIT_BRANCH}"
             }
@@ -186,7 +182,8 @@ pipeline {
                 )
             }
         }
-    } post {
+    } 
+    post {
         failure {
             slackSend(
                 channel: '#devops',
