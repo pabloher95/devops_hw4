@@ -86,11 +86,10 @@ pipeline {
                     export MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
                     export BASE_URL=http://localhost:8000
 
-
-                    docker-compose build --no-cache web
+                    docker-compose build web
                     docker-compose up -d db web
                     sleep 15
-                    docker-compose exec -T web pytest test_e2e.py
+                    docker-compose exec -T web pytest test_e2e.py --html=/app/e2e_report.html --self-contained-html
                 
                 """ 
 
@@ -118,7 +117,7 @@ pipeline {
                     cat requirements.txt >> build-info.txt 
                 """
 
-                archiveArtifacts artifacts: 'build-info.txt', fingerprint: true
+                archiveArtifacts artifacts: 'build-info.txt, e2e_report.html', fingerprint: true
 
                 echo "Deployed from ${env.GIT_BRANCH} on ${NODE_NAME}"
             }
