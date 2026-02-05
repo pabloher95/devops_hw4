@@ -174,6 +174,11 @@ pipeline {
             agent {label 'deployment'}
             steps {
                 echo "Project is ready to deploy!"
+                slackSend(
+                    channel: '#devops',
+                    color: 'good',
+                    message "Deployment sucessful!"
+                )
             }
         }
     }
