@@ -5,3 +5,4 @@ pytest-cov
 playwright
 pytest-playwright
 pytest-html
+requests

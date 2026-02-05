@@ -131,7 +131,7 @@ pipeline {
             when { expression { env.GIT_BRANCH == 'origin/main' } }
             agent {label 'deployment'}
             steps {
-                echo "Deployed from ${env.GIT_BRANCH} on ${NODE_NAME}"
+                echo "Project is ready to deploy!"
             }
         }
     }
