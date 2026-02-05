@@ -2,3 +2,5 @@ flask
 flask-mysql
 cryptography
 pytest-cov
+playwright
+pytest-playwright

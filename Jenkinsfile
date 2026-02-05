@@ -14,23 +14,7 @@ pipeline {
     }
 
     stages {
-        stage('build') {
-            agent {label 'testing'}
-            steps {
-                sh 'pip install -r requirements.txt'
-            }
-            }
-        stage('Test'){ 
-            // when { expression { env.GIT_BRANCH != 'origin/main' } }
-            agent {label 'testing'}
-            steps {
-                checkout scm
-                echo "Checked out repo from ${env.GIT_BRANCH} on ${NODE_NAME}"
-                echo "Running tests on ${NODE_NAME} for branch ${env.GIT_BRANCH}"
-            }
-        }
-
-        stage('SonarQube Analysis'){
+        stage('Analyze'){
             when { expression { env.GIT_BRANCH == 'origin/main' } } 
             agent {label 'deployment'}
             steps {
@@ -56,7 +40,7 @@ pipeline {
             }
         }
 
-        stage('Staging'){
+        stage('Stage'){
             when { expression { env.GIT_BRANCH == 'origin/main' } }
             agent {label 'deployment'}
             steps {
@@ -73,7 +57,7 @@ pipeline {
 
                     docker-compose exec -T db mysql -uroot -p${MYSQL_ROOT_PASSWORD} < staging_schema.sql
                     docker-compose exec -T db mysql -uroot -p${MYSQL_ROOT_PASSWORD} < staging_seed.sql
-                    docker-compose exec -T db mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "USE staging_db; SELECT COUNT(*) FROM to_do;"
+                    docker-compose exec -T db mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "USE staging_db; SELECT * FROM to_do;"
 
                 """
                 echo "Staging complete"
@@ -82,6 +66,36 @@ pipeline {
                 always {
                     sh 'docker compose down || true'
                 }
+            }
+        }
+
+        stage('Test'){ 
+            // when { expression { env.GIT_BRANCH != 'origin/main' } }
+            agent {label 'testing'}
+            steps {
+                checkout scm
+                echo "Checked out repo from ${env.GIT_BRANCH} on ${NODE_NAME}"
+
+                sh """
+                    export DB_HOST=${DB_HOST}
+                    export DB_PORT=${DB_PORT}
+                    export MYSQL_USER=${MYSQL_USER}
+                    export MYSQL_PASSWORD=${MYSQL_PASSWORD}
+                    export MYSQL_DATABASE=${MYSQL_DATABASE}
+                    export MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+                    export BASE_URL= http://web:8000
+
+                    docker-compose up -d db web
+                    sleep 10
+
+
+                    pip install -r requirements.txt
+                    playwright install --with-deps
+                    pytest -q test_e2e.py
+                
+                """ 
+
+                echo "Running tests on ${NODE_NAME} for branch ${env.GIT_BRANCH}"
             }
         }
 

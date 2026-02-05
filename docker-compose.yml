@@ -8,6 +8,8 @@ services:
         condition: service_healthy
     restart: always
     environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
