@@ -110,6 +110,7 @@ pipeline {
                     string(credentialsId: 'MYSQL_ROOT_PASSWORD', variable: 'MYSQL_ROOT_PASSWORD')
                 ]){
                     sh """
+                    docker-compose down -v
                     docker-compose build web
                     docker-compose up -d db web
                     sleep 15
