@@ -40,7 +40,7 @@ pipeline {
             when { expression { env.GIT_BRANCH == 'origin/main' } } 
             agent {label 'deployment'}
             steps {
-                checkout scm
+                checkout scm //
                 withSonarQubeEnv('SonarQube') {
                     sh """
                         sonar-scanner \
