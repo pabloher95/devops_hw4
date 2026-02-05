@@ -177,7 +177,7 @@ pipeline {
                 slackSend(
                     channel: '#devops',
                     color: 'good',
-                    message "Deployment sucessful!"
+                    message: "Deployment successful!"
                 )
             }
         }
