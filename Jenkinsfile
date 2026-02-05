@@ -5,6 +5,11 @@ pipeline {
     }
     environment {
         VERSION = "1.0.${BUILD_NUMBER}"
+        DB_HOST = credentials('DB_HOST')
+        DB_PORT = credentials('DB_PORT')
+        MYSQL_USER = credentials('MYSQL_USER')
+        MYSQL_PASSWORD = credentials('MYSQL_PASSWORD')
+        MYSQL_DATABASE = credentials('MYSQL_DATABASE')
     }
 
     stages {
@@ -50,6 +55,30 @@ pipeline {
             }
         }
 
+        stage('Staging'){
+            when { expression { env.GIT_BRANCH == 'origin/main' } }
+            agent {label 'deployment'}
+            steps {
+                sh """                
+                    export DB_HOST=${DB_HOST}
+                    export DB_PORT=${DB_PORT}
+                    export MYSQL_USER=${MYSQL_USER}
+                    export MYSQL_PASSWORD=${MYSQL_PASSWORD}
+                    export MYSQL_DATABASE=${MYSQL_DATABASE}
+
+                    docker-compose up -d db
+                    sleep 10
+
+                    docker-compose exec -T db mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} < schema.sql
+                    docker-compose exec -T db mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} < seed.sql
+                    
+                    # Verify
+                    docker-compose exec -T db mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} -e "USE staging_db; SELECT COUNT(*) FROM to_do;"
+
+                """
+            }
+        }
+
         stage('Deploy'){
             when { expression { env.GIT_BRANCH == 'origin/main' } }
             agent {label 'deployment'}
@@ -63,7 +92,6 @@ pipeline {
                     echo "Build Date: \$(date)" >> build-info.txt
                     echo "Dependencies:" >> build-info.txt
                     cat requirements.txt >> build-info.txt 
-
                 """
 
                 archiveArtifacts artifacts: 'build-info.txt', fingerprint: true
