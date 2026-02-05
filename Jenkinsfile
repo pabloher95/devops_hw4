@@ -138,23 +138,32 @@ pipeline {
             when { expression { env.GIT_BRANCH == 'origin/main' } }
             agent {label 'deployment'}
             steps {
-                    sh """
+                checkout scm
+                withCredentials([
+                    string(credentialsId: 'DB_HOST', variable: 'DB_HOST'),
+                    string(credentialsId: 'DB_PORT', variable: 'DB_PORT'),
+                    string(credentialsId: 'MYSQL_USER', variable: 'MYSQL_USER'),
+                    string(credentialsId: 'MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
+                    string(credentialsId: 'MYSQL_ROOT_PASSWORD', variable: 'MYSQL_ROOT_PASSWORD')
+                ]) {
+                    sh '''
                         set -euxo pipefail
                         docker-compose up -d db web
-                        sleep 10
+                        sleep 15
 
-                        # run k6 from the official image against the compose network
-                        NET=$(docker network ls --format '{{.Name}}' | grep devops-hw4 | head -1)
+                        # Run k6 from the official image against the compose network
+                        NET=$(docker network ls --format '{{.Name}}' | grep hw4 | head -1)
                         docker run --rm \
                             --network="$NET" \
                             -v "$PWD":/scripts \
                             -w /scripts \
                             grafana/k6 run loadtest.js
-                        """
+                    '''
+                }
             }
             post {
                 always {
-                sh 'docker-compose down || true'
+                    sh 'docker-compose down || true'
                 }
             }
         }
